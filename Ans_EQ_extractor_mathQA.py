@@ -1,10 +1,48 @@
 # This code is contributed by avishekarora
 import json
+import math
+import re
 
 class  extractor:
     def __init__(self):
         self.data = []
         self.idx = 1
+
+    def remove_brackets(self, term):
+        a = 0
+        while True:
+            # Find opening bracket
+            try:
+                a = term.index("(", a)
+            except ValueError:
+                # No (more) opening brackets found
+                break
+            # Find corresponding closing bracket
+            b = a
+            while True:
+                b = term.index(")", b + 1)
+                if term[a + 1:b].count("(") == term[a + 1:b].count(")"):
+                    break
+            # Assemble new term by removing current pair of brackets
+            new_term = term[:a] + term[a + 1:b] + term[b + 1:]
+            # If new term produces a different value, keep term as it is and try with the next pair of brackets
+            try:
+                # print(term)
+                # print("new term:{}".format(new_term))
+                if eval(term) != eval(new_term):
+                    a += 1
+                    continue
+                else:
+                    term = new_term
+            except ZeroDivisionError:
+                a+=1
+                continue
+            except AttributeError:
+                a+=1
+                continue
+                
+            # Adopt new term
+        return term
 
     def dumper(self, answer, equation):
 
@@ -14,18 +52,125 @@ class  extractor:
         
 
     # Python Program to convert prefix to Infix
-    def prefixToInfix(self,prefix):
+    def prefixToInfix(self,formula):
         stack = []
         # read prefix in reverse order
-        i = len(prefix) - 1
+        i = len(formula) - 1
+
+
         while i >= 0:
-            if not self.isOperator(prefix[i]):
-                # symbol is operand
-                stack.append(prefix[i])
+            if formula[i] == 'max':
+                string = "max" + "(" + stack.pop() + "," + stack.pop() + ")"
+                stack.append(string)
                 i -= 1
+
+            elif formula[i] == 'min':
+                string = "min" + "(" + stack.pop() + "," + stack.pop() + ")"
+                stack.append(string)
+                i -= 1
+
+            elif formula[i] == 'log':
+                string = "math.log" + "(" + stack.pop() + ")"
+                stack.append(string)
+                i -= 1
+
+            elif formula[i] == 'sqrt':
+                string = "math.sqrt" + "(" + stack.pop() + ")"
+                stack.append(string)
+                i -= 1        
+
+            elif formula[i] == 'factorial':
+                string = "math.factorial" + "(" + stack.pop() + ")"
+                stack.append(string)
+                i -= 1     
+
+            elif formula[i] == 'gcd':
+                string = "math.gcd" + "(" + stack.pop() + "," + stack.pop() + ")"
+                stack.append(string)
+                i -= 1     
+
+            elif formula[i] == 'lcm':
+                string = "math.lcm" + "(" + stack.pop() + "," + stack.pop() + ")"
+                stack.append(string)
+                i -= 1     
+
+            elif formula[i] == 'round':
+                string = "math.round" + "(" + stack.pop() + ")"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'floor':
+                string = "math.floor" + "(" + stack.pop() + ")"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'circle_area':
+                string = "pi" + "*" + stack.pop() + "**2"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'circumface':
+                string = "pi" + "*" + stack.pop() + "*2"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'rectangle_perimeter':
+                string = "2" + "*" + stack.pop()
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'rectangle_area':
+                string = stack.pop() + "*" + stack.pop()
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'square_perimeter':
+                string = stack.pop() + "*4"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'square_area':
+                string = stack.pop() + "**2"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'choose':
+                string = "math.comb" + "(" + stack.pop() + "," + stack.pop()+ ")"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'permutation':
+                string = "math.perm" + "(" + stack.pop() + "," + stack.pop()+ ")"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'rhombus_perimeter':
+                string = "2" + "*" + stack.pop()
+                stack.append(string)
+                i -= 1    
+            elif formula[i] == 'rhombus_area':
+                string = stack.pop() + "*" + stack.pop() + "/2"
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'triangle_perimeter':
+                string = stack.pop() + "+" + stack.pop() + "+" + stack.pop()
+                stack.append(string)
+                i -= 1    
+
+            elif formula[i] == 'triangle_area':
+                string = stack.pop() + "*" + stack.pop() + "/2"
+                stack.append(string)
+                i -= 1    
+
+            elif not self.isOperator(formula[i]):
+                # symbol is operand (숫자)
+                stack.append(formula[i])
+                i -= 1
+
             else:
-                # symbol is operator
-                str = "(" + stack.pop() + prefix[i] + stack.pop() + ")"
+                #symbol is operator
+                str = "(" + stack.pop() + formula[i] + stack.pop() + ")"
                 stack.append(str)
                 i -= 1
         
@@ -68,7 +213,12 @@ class  extractor:
             formula = formula.replace("(", ",")
             formula = formula.replace(", ", ",")
             formula = formula.replace(")", "")
+            formula = formula.replace("const_0_", "0.")
+            formula = formula.replace("const_1_", "1.")
+            formula = formula.replace("const_2_", "2.")
+            formula = formula.replace("const_3_", "3.")
             formula = formula.replace("const_", "")
+            
             #print(formula)
             formula = formula.split(",")
             #print(formula)
@@ -91,27 +241,55 @@ class  extractor:
                     
                 elif i =="power":
                     formula[id]="**"
+
+                elif i =="reminder":
+                    formula[id]="%"
+
                 else:#숫자
                     pass
-                
+            print(formula)
             equation = self.prefixToInfix(formula)
+            
             print(equation)
-            self.dumper(answer, equation)
+            # 불필요한 () 제거 
+            equation_mini = self.remove_brackets(equation)
+            print(equation_mini)
+            
+            #띄어쓰기 
+            #100*36*100/(3*10)/(3*10)
+            pointer = equation_mini[0]
+            pattern= re.compile("([0-9]+)")
+            for ch in equation_mini[1:]:
+                current = pattern.match(ch)
+                previous = pattern.match(pointer[-1])
+                #숫자, 숫자
+                if previous != None and current != None:
+                    pointer += ch
+                    print(pointer)
+                elif previous != None and current == None:
+                    pointer += " "
+                    pointer += ch
+                    print(pointer)
+                elif previous == None and current != None:
+                    pointer += " "
+                    pointer += ch
+                    print(pointer)
+
+                elif previous == None and current == None:
+                    pointer += ch
+                    print(pointer)
+            
+            final_eq = pointer.replace("(", " (")
+            final_eq = final_eq.replace(")", ") ")
+            print(final_eq)
+            self.dumper(answer, final_eq)
             self.idx+=1
             
-
-            #answer랑  비교하는 함수(python runnable?)
-
-            #write the equation to json file
-            # with oepn("mathQQ_equation.json", 'w') as file:
-            #     file.write(equation)
-
-
 
 
 file_path = "./mathQA.json"
 extractor = extractor()
-formula = extractor.reader(file_path)
+extractor.reader(file_path)
 
 
      
