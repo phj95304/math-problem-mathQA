@@ -12,7 +12,7 @@ def dumper(question):
     data.append({str(idx) : {"question":question}})
 
     with open("./questionsheet_MATHQA.json", "w", encoding="utf-8") as testfile:
-        json.dump(data, testfile, ensure_ascii=False)
+        json.dump(data, testfile, ensure_ascii=False, indent=2)
 
 
 # def extractor(json_file_path): json file load and translate
